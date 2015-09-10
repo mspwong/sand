@@ -1,67 +1,77 @@
 class PigLatin
   def self.english_2_pig(english_phrase)
-    words = english_phrase.split
-    words.each_with_object('') do |word, pig_phrase|
-      pig_phrase << translate_word(word) << ' '
+    self.new(english_phrase).english_2_pig
+  end
+  
+  def initialize(english_phrase)
+    @english_phrase = english_phrase
+    @first_char = nil
+    @punctuation = nil
+    @english_chars_ary = nil
+    @pig_word = nil
+  end
+  
+  def english_2_pig
+    @english_phrase.split.each_with_object('') do |english_word, pig_phrase|
+      translate(english_word)
+      pig_phrase << @pig_word << ' '
     end.strip
   end
 
   private
 
-  def self.translate_word(english_word)
-    chars = word_2_array(english_word)
-    first_char = chars.first
-    chars, punctuation = trim_last_punctuation(chars)
-    chars = shift_left(chars, first_char)
-    append_ay(chars)
-    pig_word = neutralize_capitalization(chars)
-    pig_word = restore_capitalization(first_char, pig_word)
-    restore_punctuation(pig_word, punctuation)
-    pig_word
+  def translate(english_word)
+    @english_chars_ary = word_2_array(english_word)
+    @first_char = @english_chars_ary.first
+    trim_last_punctuation
+    shift_left
+    append_ay
+    @pig_word = neutralize_capitalization
+    restore_capitalization
+    restore_punctuation
   end
 
-  def self.word_2_array(english_word)
+  def word_2_array(english_word)
     english_word.split('')
   end
 
-  def self.trim_last_punctuation(chars)
-    last_char = chars.last
+  def trim_last_punctuation
+    last_char = @english_chars_ary.last
     unless alpha?(last_char)
-      punctuation = last_char
-      chars = chars[0, chars.length - 1]
+      @punctuation = last_char
+      @english_chars_ary = @english_chars_ary[0, @english_chars_ary.length - 1]
     end
-    return chars, punctuation
   end
 
-  def self.shift_left(chars, first_char)
-    vowel?(first_char) ? chars : chars.rotate
+  def shift_left
+    @english_chars_ary = @english_chars_ary.rotate unless vowel?(@first_char)
   end
 
-  def self.append_ay(chars)
-    chars << 'ay'
+  def append_ay
+    @english_chars_ary << 'ay'
   end
 
-  def self.neutralize_capitalization(chars)
-    chars.join.downcase
+  def neutralize_capitalization
+    @english_chars_ary.join.downcase
   end
 
-  def self.restore_capitalization(first_char, pig_word)
-    capitalized?(first_char) ? pig_word.capitalize : pig_word
+  def restore_capitalization
+    @pig_word = @pig_word.capitalize if capitalized?(@first_char)
   end
 
-  def self.restore_punctuation(pig_word, punctuation)
-    pig_word << punctuation if punctuation
+  def restore_punctuation
+    @pig_word << @punctuation if @punctuation
   end
 
-  def self.capitalized?(char)
+  def capitalized?(char)
     char.upcase == char
   end
 
-  def self.alpha?(char)
+  def alpha?(char)
     char.match(/^[[:alpha:]]+$/) ? true : false
   end
 
-  def self.vowel?(char)
+  def vowel?(char)
     char.match(/a|e|i|o|u/) ? true : false
   end
 end
